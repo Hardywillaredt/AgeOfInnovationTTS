@@ -79,6 +79,7 @@ HighFavBagGUID = 'e649cc'
 Palace17GUID = 'ea4fba'
 SpadeGUID = 'e43adf'
 xGUID = '38e0ab'
+tableGUID = 'bd69bd'
 
 BookUpgradeGUID = '48f51f'
 BookGuildsGUID = '9ed184'
@@ -87,44 +88,61 @@ BookDisciplineGUID = '051fd4'
 BookSpadesGUID = 'c1f4f3'
 BookPowerGUID = '015a71'
 
+
+powerTokenGUID = 'b51d8c'
+
+-- player order will always be Blue, Red, Yellow, Green
+
 BookArray = {nil, nil, nil}
 Global.setVar("BookArray", BookArray)
 
+-- bowl zones are in order from 1 to 3
 blueBowlsGUIDs = {"f13849", "7caa56", "3d7b3d"}
-blueMatZoneGUID = "0625ff"
 redBowlsGUIDs = {"6d245d", "d0ae4e", "184dd1"}
-redMatZoneGUID = "241426"
 yellowBowlsGUIDs = {"2987ae", "8f2a1d", "a57f53"}
-yellowMatZoneGUID = "9db6ab"
 greenBowlsGUIDs = {"70da64", "ee6ebb", "63acca"}
-greenMatZoneGUID = "7c4631"
+
+playerColors = {"Blue", "Red", "Yellow", "Green"}
+playerOrderTokensGUIDs = {"5a34eb","5e77c7","c3b035","1b4886"}
+playerBowlsGUIDs= {blueBowlsGUIDs, redBowlsGUIDs, yellowBowlsGUIDs, greenBowlsGUIDs}
+playerMatZonesGUIDs = {"2362bc", "d2d5dd", "6256b2", "c15180"}
+playerMatsGUIDs = {"2f68e7", "41dc43", "9b01e0", "8cb765"}
+
+
 
 blueBowls = {nil, nil, nil}
 redBowls = {nil, nil, nil}
 yellowBowls = {nil, nil, nil}
 greenBowls = {nil, nil, nil}
 
-blueMatZone = nil
-redMatZone = nil
-yellowMatZone = nil
-greenMatZone = nil
+playerOrderTokens = {nil,nil,nil,nil}
+playerBowls = {blueBowls, redBowls, yellowBowls, greenBowls}
+playerMatZones = {nil, nil, nil, nil}
+playerMats = {nil, nil, nil, nil}
+playerSelectedTerrains = {0,0,0,0}
 
 
-swampNativeGUID = "933e6f"
-lakeNativeGUID = "54c388"
-forestNativeGUID = "6ad479"
-mountainNativeGUID = "8af43a"
-wastelandNativeGUID = "1337ea"
-desertNativeGUID = "14a1d4"
-plainNativeGUID = "b063c0"
+swampTerrainGUID = "933e6f"
+lakeTerrainGUID = "54c388"
+forestTerrainGUID = "6ad479"
+mountainTerrainGUID = "8af43a"
+wastelandTerrainGUID = "1337ea"
+desertTerrainGUID = "14a1d4"
+plainTerrainGUID = "b063c0"
 
 buttonColor = {1,1,1,1}
+fontColorPick = {0,0.5,0,1}
+fontColorTaken = {0.5,0,0,1}
 
-nativeTerrainGUIDs = {swampNativeGUID, lakeNativeGUID, forestNativeGUID, mountainNativeGUID, wastelandNativeGUID, desertNativeGUID, plainNativeGUID}
+terrainGUIDs = {swampTerrainGUID, lakeTerrainGUID, forestTerrainGUID, mountainTerrainGUID, wastelandTerrainGUID, desertTerrainGUID, plainTerrainGUID}
 
-nativeTerrainColors = {{20/255, 20/255, 20/255}, {34/255, 93/255, 185/255}, {31/255, 132/255, 25/255}, {121/255, 117/255, 111/255}, {180/255, 20/255, 13/255}, {208/255, 174/255, 14/255}, {100/255, 67/255, 21/255}}
+terrainColors = {{20/255, 20/255, 20/255}, {34/255, 93/255, 185/255}, {31/255, 132/255, 25/255}, {121/255, 117/255, 111/255}, {180/255, 20/255, 13/255}, {208/255, 174/255, 14/255}, {100/255, 67/255, 21/255}}
 
-nativeTerrainObjects = {nil, nil, nil, nil, nil, nil, nil}
+terrainPowerCounts = {{3, 9}, {5, 7}, {4, 8}, {5, 7}, {5,7}, {5,7},{5,7}}
+
+terrainObjects = {nil, nil, nil, nil, nil, nil, nil}
+
+
 
 
 BookPOS = {
@@ -161,44 +179,56 @@ function onLoad()
     Counters()
     map = getObjectFromGUID(MapGUID)
     x = getObjectFromGUID(xGUID)
+    powerToken = getObjectFromGUID(powerTokenGUID)
     palace17 = getObjectFromGUID(Palace17GUID)
     turnBag = getObjectFromGUID(TurnBagGUID)
-    turnBag.shuffle()
+    turnBag.randomize()
     bookBag = getObjectFromGUID(BookBagGUID)
-    bookBag.shuffle()
+    bookBag.randomize()
     bonBag = getObjectFromGUID(BonBagGUID)
-    bonBag.shuffle()
+    bonBag.randomize()
     favBag = getObjectFromGUID(FavBagGUID)
-    favBag.shuffle()
+    favBag.randomize()
     palaceBag = getObjectFromGUID(PalaceBagGUID)
-    palaceBag.shuffle()
+    palaceBag.randomize()
     factionBag = getObjectFromGUID(FactionBagGUID)
-    factionBag.shuffle()
+    factionBag.randomize()
     roundScoreBag = getObjectFromGUID(RoundScoreBagGUID)
-    roundScoreBag.shuffle()
+    roundScoreBag.randomize()
     finalRoundScoreBag = getObjectFromGUID(FinalRoundScoreBagGUID)
-    finalRoundScoreBag.shuffle()
+    finalRoundScoreBag.randomize()
     highFavBag = getObjectFromGUID(HighFavBagGUID)
-    highFavBag.shuffle()
-    for i = 1,3 do
-        blueBowls[i] = getObjectFromGUID(blueBowlsGUIDs[i])
-        redBowls[i] = getObjectFromGUID(redBowlsGUIDs[i])
-        yellowBowls[i] = getObjectFromGUID(yellowBowlsGUIDs[i])
-        greenBowls[i] = getObjectFromGUID(greenBowlsGUIDs[i])
-    end
-    blueMatZone = getObjectFromGUID(blueMatZoneGUID)
-    redMatZone = getObjectFromGUID(redMatZoneGUID)
-    yellowMatZone = getObjectFromGUID(yellowMatZoneGUID)
-    greenMatZone = getObjectFromGUID(greenMatZoneGUID)
+    highFavBag.randomize()
 
-    blueMat = getObjectFromGUID("2f68e7")
-    redMat = getObjectFromGUID("41dc43")
-    yellowMat = getObjectFromGUID("9b01e0")
-    greenMat = getObjectFromGUID("8cb765")
+    print("reached")
+
+    -- pull out the turn order and set the object pointers
+    for i = 1,4 do
+        local obj = turnBag.takeObject({
+            flip = false,
+            position = {TURNPOS[i][1], TURNPOS[i][2], TURNPOS[i][3]}
+        })
+        for k = 1,4 do
+            if obj.getGUID() == playerOrderTokensGUIDs[k] then
+                playerOrderTokens[k] = obj
+            end
+        end
+    end
+
+    print("reached")
+
+    for i = 1,4 do
+        -- playerOrderTokens[i] = getObjectFromGUID(playerOrderTokensGUIDs[i])
+        playerMatZones[i] = getObjectFromGUID(playerMatZonesGUIDs[i])
+        playerMats[i] = getObjectFromGUID(playerMatsGUIDs[i])
+        for k =1,3 do
+            playerBowls[i][k] = getObjectFromGUID(playerBowlsGUIDs[i][k])
+        end
+    end
 
 
     for i = 1,7 do
-        nativeTerrainObjects[i] = getObjectFromGUID(nativeTerrainGUIDs[i])
+        terrainObjects[i] = getObjectFromGUID(terrainGUIDs[i])
     end
     SetTerrainButtons()
 end
@@ -208,7 +238,7 @@ buttonPos = {0,0.4,0}
 function SetTerrainButtons()
     local lButtonScale = {1.0,0.2,0.5}
     for i = 1,7 do
-        local obj = nativeTerrainObjects[i]
+        local obj = terrainObjects[i]
         print(obj)
 
         --Sets up reference function
@@ -218,12 +248,12 @@ function SetTerrainButtons()
         buttonTable.function_owner = self
         buttonTable.position= {0,0,0}
         buttonTable.position[2] = buttonTable.position[2] + 0.3
-        buttonTable.height=350
+        buttonTable.height=500
         buttonTable.width=700
-        buttonTable.font_size=350
+        buttonTable.font_size=200
         buttonTable.scale=lButtonScale
         buttonTable.color={1,1,1,1}
-        buttonTable.font_color=nativeTerrainColors[i]
+        buttonTable.font_color=fontColorPick
         print(buttonTable)
         self.setVar(buttonTable.click_function, 
             function(o,c,a) 
@@ -246,28 +276,107 @@ function SetTerrainButtons()
     end
 end
 
-function selectTerrain(object, color, alt_click, terrainIdx)
-    print(color)
-    local pieces = {}
-    local mat = nil
-    if color == "Green" then
-        pieces = greenMatZone.getObjects()
-        mat = greenMat
-    elseif color == "Red" then
-        pieces = redMatZone.getObjects()
-        mat = redMat
-    elseif color == "Yellow" then
-        pieces = yellowMatZone.getObjects()
-        mat = yellowMat
-    elseif color == "Blue" then
-        pieces = blueMatZone.getObjects()
-        mat = blueMat
+function emptyPowerBowls(bowls)
+    for _, bowl in ipairs(bowls) do
+        
+        local objectDestroyed = true
+        while(objectDestroyed) 
+        do
+            objectDestroyed = false
+            local objectSet = bowl.getObjects()
+            for _, obj in ipairs(objectSet) do
+                if obj.getName() == "powerToken" then
+                    destroyObject(obj)
+                    objectDestroyed = true
+                    break
+                end
+            end
+        end
     end
-    for _, obj in ipairs(pieces) do
-        obj.setColorTint(terrainColors[terrainIdx])
+end
+
+function populatePowerBowls(powerCount, bowls)
+    local radius = 1.0
+    local radiansPerTokenBowl1 = math.pi * 2 / powerCount[1]
+    local radiansPerTokenBowl2 = math.pi * 2 / powerCount[2]
+    local angleBowl1 = 0
+    local angleBowl2 = 0
+    for i = 1,powerCount[1] do
+        local pos = bowls[1].getPosition()
+        pos[1] = pos[1] + math.cos(angleBowl1) * radius * 0.8
+        pos[3] = pos[3] + math.sin(angleBowl1) * radius * 1.1
+        powerToken.clone({position=pos})
+        angleBowl1 = angleBowl1 + radiansPerTokenBowl1
+    end
+    for i = 1,powerCount[2] do
+        local pos = bowls[2].getPosition()
+        pos[1] = pos[1] + math.cos(angleBowl2) * radius * 0.8
+        pos[3] = pos[3] + math.sin(angleBowl2) * radius * 1.1
+        powerToken.clone({position=pos})
+        angleBowl2 = angleBowl2 + radiansPerTokenBowl2
+    end
+end
+
+function getPlayerIdx(color)
+    for i = 1,4 do
+        if color == playerColors[i] then
+            return i
+        end
+    end
+end
+
+terrainsPicked = {false, false, false, false, false, false, false}
+
+function selectTerrain(object, color, alt_click, terrainIdx)
+
+    -- identify the components associated with the player that will need updates
+    local playerIdx = getPlayerIdx(color)
+    local playerPieces = playerMatZones[playerIdx].getObjects()
+    local playerMat = playerMats[playerIdx]
+    local playerBowls = playerBowls[playerIdx]
+    local powerCount = terrainPowerCounts[terrainIdx]
+    local playerOrderToken = playerOrderTokens[playerIdx]
+    local terrainColor = terrainColors[terrainIdx]
+
+    if terrainsPicked[terrainIdx] then
+        print("Terrain Type Taken, pick a different Terrain")
+        return
     end
 
-    mat.setState(terrainIdx)
+    emptyPowerBowls(playerBowls)
+
+    --update the color of the players pieces within their player zone
+    for _, obj in ipairs(playerPieces) do
+        if obj.getGUID() == tableGUID then
+            print("skipping table")
+        else
+            obj.setColorTint(terrainColor)
+        end
+    end
+
+    --update the color of the players order token
+    playerOrderToken.setColorTint(terrainColor)
+    --update the player's selected terrain
+    -- if the player previously selected a terrain color, free that terrain color up
+    local previousPlayerTerrain = playerSelectedTerrains[playerIdx]
+    if previousPlayerTerrain > 0 then
+        terrainsPicked[previousPlayerTerrain] = false
+        terrainObjects[previousPlayerTerrain].editButton({index=0, label="PICK", font_color=fontColorPick})
+    end
+
+    --update the button to reflect that the faction is taken
+    terrainsPicked[terrainIdx] = true
+    
+    terrainObjects[terrainIdx].editButton({index=0, label="TAKEN", font_color=fontColorTaken})
+    playerSelectedTerrains[playerIdx] = terrainIdx
+    
+    -- populate the power bowls
+    populatePowerBowls(powerCount, playerBowls)
+
+    -- set the player mat to the appropriate color
+    print("player mat")
+    print(playerMat)
+    playerMat.setState(terrainIdx)
 end
 
 function Counters()
