@@ -88,7 +88,43 @@ BookSpadesGUID = 'c1f4f3'
 BookPowerGUID = '015a71'
 
 BookArray = {nil, nil, nil}
+Global.setVar("BookArray", BookArray)
 
+blueBowlsGUIDs = {"f13849", "7caa56", "3d7b3d"}
+blueMatZoneGUID = "0625ff"
+redBowlsGUIDs = {"6d245d", "d0ae4e", "184dd1"}
+redMatZoneGUID = "241426"
+yellowBowlsGUIDs = {"2987ae", "8f2a1d", "a57f53"}
+yellowMatZoneGUID = "9db6ab"
+greenBowlsGUIDs = {"70da64", "ee6ebb", "63acca"}
+greenMatZoneGUID = "7c4631"
+
+blueBowls = {nil, nil, nil}
+redBowls = {nil, nil, nil}
+yellowBowls = {nil, nil, nil}
+greenBowls = {nil, nil, nil}
+
+blueMatZone = nil
+redMatZone = nil
+yellowMatZone = nil
+greenMatZone = nil
+
+
+swampNativeGUID = "933e6f"
+lakeNativeGUID = "54c388"
+forestNativeGUID = "6ad479"
+mountainNativeGUID = "8af43a"
+wastelandNativeGUID = "1337ea"
+desertNativeGUID = "14a1d4"
+plainNativeGUID = "b063c0"
+
+buttonColor = {1,1,1,1}
+
+nativeTerrainGUIDs = {swampNativeGUID, lakeNativeGUID, forestNativeGUID, mountainNativeGUID, wastelandNativeGUID, desertNativeGUID, plainNativeGUID}
+
+nativeTerrainColors = {{20/255, 20/255, 20/255}, {34/255, 93/255, 185/255}, {31/255, 132/255, 25/255}, {121/255, 117/255, 111/255}, {180/255, 20/255, 13/255}, {208/255, 174/255, 14/255}, {100/255, 67/255, 21/255}}
+
+nativeTerrainObjects = {nil, nil, nil, nil, nil, nil, nil}
 
 
 BookPOS = {
@@ -144,6 +180,94 @@ function onLoad()
     finalRoundScoreBag.shuffle()
     highFavBag = getObjectFromGUID(HighFavBagGUID)
     highFavBag.shuffle()
+    for i = 1,3 do
+        blueBowls[i] = getObjectFromGUID(blueBowlsGUIDs[i])
+        redBowls[i] = getObjectFromGUID(redBowlsGUIDs[i])
+        yellowBowls[i] = getObjectFromGUID(yellowBowlsGUIDs[i])
+        greenBowls[i] = getObjectFromGUID(greenBowlsGUIDs[i])
+    end
+    blueMatZone = getObjectFromGUID(blueMatZoneGUID)
+    redMatZone = getObjectFromGUID(redMatZoneGUID)
+    yellowMatZone = getObjectFromGUID(yellowMatZoneGUID)
+    greenMatZone = getObjectFromGUID(greenMatZoneGUID)
+
+    blueMat = getObjectFromGUID("2f68e7")
+    redMat = getObjectFromGUID("41dc43")
+    yellowMat = getObjectFromGUID("9b01e0")
+    greenMat = getObjectFromGUID("8cb765")
+
+
+    for i = 1,7 do
+        nativeTerrainObjects[i] = getObjectFromGUID(nativeTerrainGUIDs[i])
+    end
+    SetTerrainButtons()
+end
+
+buttonPos = {0,0.4,0}
+
+function SetTerrainButtons()
+    local lButtonScale = {1.0,0.2,0.5}
+    for i = 1,7 do
+        local obj = nativeTerrainObjects[i]
+        print(obj)
+
+        --Sets up reference function
+        local buttonTable={}
+        buttonTable.click_function='terrainClick_'..i
+        buttonTable.label = "PICK"
+        buttonTable.function_owner = self
+        buttonTable.position= {0,0,0}
+        buttonTable.position[2] = buttonTable.position[2] + 0.3
+        buttonTable.height=350
+        buttonTable.width=700
+        buttonTable.font_size=350
+        buttonTable.scale=lButtonScale
+        buttonTable.color={1,1,1,1}
+        buttonTable.font_color=nativeTerrainColors[i]
+        print(buttonTable)
+        self.setVar(buttonTable.click_function, 
+            function(o,c,a) 
+                selectTerrain(o,c,a,i)
+            end)
+        obj.createButton(buttonTable)
+        -- local funcName = "checkbox"..i
+        -- -- local func = function() click_checkbox(i, buttonNumber) end
+        -- self.setVar(funcName, func)
+        -- --Sets up label
+        -- local label = ""
+        -- if data.state==true then label=string.char(10008) end
+        -- --Creates button and counts it
+        -- self.createButton({
+        --     label=label, click_function="click_checkbox2", function_owner=self,
+        --     position=data.pos, height=data.size, width=data.size,
+        --     font_size=data.size, scale=buttonScale,
+        --     color=buttonColorInvis, font_color=buttonFontColor
+        -- })
+    end
+end
+
+function selectTerrain(object, color, alt_click, terrainIdx)
+    print(color)
+    local pieces = {}
+    local mat = nil
+    if color == "Green" then
+        pieces = greenMatZone.getObjects()
+        mat = greenMat
+    elseif color == "Red" then
+        pieces = redMatZone.getObjects()
+        mat = redMat
+    elseif color == "Yellow" then
+        pieces = yellowMatZone.getObjects()
+        mat = yellowMat
+    elseif color == "Blue" then
+        pieces = blueMatZone.getObjects()
+        mat = blueMat
+    end
+    for _, obj in ipairs(pieces) do
+        obj.setColorTint(terrainColors[terrainIdx])
+    end
+
+    mat.setState(terrainIdx)
 end
 
 function Counters()
