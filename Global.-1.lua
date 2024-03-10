@@ -90,6 +90,7 @@ BookPowerGUID = '015a71'
 
 
 powerTokenGUID = 'b51d8c'
+powerTokenName = "powerToken"
 
 -- player order will always be Blue, Red, Yellow, Green
 
@@ -97,27 +98,12 @@ BookArray = {nil, nil, nil}
 Global.setVar("BookArray", BookArray)
 
 -- bowl zones are in order from 1 to 3
-blueBowlsGUIDs = {"f13849", "7caa56", "3d7b3d"}
-redBowlsGUIDs = {"6d245d", "d0ae4e", "184dd1"}
-yellowBowlsGUIDs = {"2987ae", "8f2a1d", "a57f53"}
-greenBowlsGUIDs = {"70da64", "ee6ebb", "63acca"}
 
-playerColors = {"Blue", "Red", "Yellow", "Green"}
 playerOrderTokensGUIDs = {"5a34eb","5e77c7","c3b035","1b4886"}
-playerBowlsGUIDs= {blueBowlsGUIDs, redBowlsGUIDs, yellowBowlsGUIDs, greenBowlsGUIDs}
-playerMatZonesGUIDs = {"2362bc", "d2d5dd", "6256b2", "c15180"}
 playerMatsGUIDs = {"2f68e7", "41dc43", "9b01e0", "8cb765"}
 
 
-
-blueBowls = {nil, nil, nil}
-redBowls = {nil, nil, nil}
-yellowBowls = {nil, nil, nil}
-greenBowls = {nil, nil, nil}
-
 playerOrderTokens = {nil,nil,nil,nil}
-playerBowls = {blueBowls, redBowls, yellowBowls, greenBowls}
-playerMatZones = {nil, nil, nil, nil}
 playerMats = {nil, nil, nil, nil}
 playerSelectedTerrains = {0,0,0,0}
 
@@ -141,6 +127,10 @@ terrainColors = {{20/255, 20/255, 20/255}, {34/255, 93/255, 185/255}, {31/255, 1
 terrainPowerCounts = {{3, 9}, {5, 7}, {4, 8}, {5, 7}, {5,7}, {5,7},{5,7}}
 
 terrainObjects = {nil, nil, nil, nil, nil, nil, nil}
+
+
+
+placementTag = "placement"
 
 
 
@@ -175,7 +165,183 @@ variantPalacePOS = {
 }
 variantBonPOS = {-56.62, 1.16, -2.53}
 
+
+
+
+
+playerOrderAreas = {}
+playerOrderIdx = 1
+nextPlayerOrderIdx = 2
+playerOrderTag = "playerOrder"
+nextPlayerOrderTag = "nextPlayerOrder"
+
+function populatePlayerOrderAreas()
+    playerOrderAreas[playerOrderIdx] = {}
+    playerOrderAreas[nextPlayerOrderIdx] = {}
+    local allObjs = getAllObjects()
+    for i, obj in ipairs(allObjs) do
+        for trackIdx, trackIdxTag in ipairs(trackIdxTags) do
+            if obj.hasTag(trackIdxTag) then
+                if obj.hasTag(playerOrderTag) then
+                    playerOrderAreas[playerOrderIdx][trackIdx] = obj
+                elseif obj.hasTag(nextPlayerOrderTag) then
+                    playerOrderAreas[nextPlayerOrderIdx][trackIdx] = obj
+                end
+            end
+        end
+    end
+end
+
+function randomizePlayerOrder()
+    for i = 1,4 do
+        playerOrderTokens[i] = getObjectFromGUID(playerOrderTokensGUIDs[i])
+        local newPosition = playerOrderAreas[nextPlayerOrderIdx][i].getPosition()
+        newPosition[2] = newPosition[2] + 10
+        playerOrderTokens[i].setPosition(newPosition)
+    end
+    local placedPieces = {}
+    local numPlacedPieces = 0
+    while numPlacedPieces < 4 do
+        local pieceToPlace = math.random(1,4)
+        local pieceAlreadyPlaced = false
+        for i, pieceIdx in ipairs(placedPieces) do
+            if pieceIdx == pieceToPlace then
+                pieceAlreadyPlaced = true
+            end
+        end
+        local currentPlayerOrder = numPlacedPieces + 1
+        if not pieceAlreadyPlaced then
+            local newPosition = playerOrderAreas[playerOrderIdx][currentPlayerOrder].getPosition()
+            newPosition[2] = newPosition[2] + 10
+            playerOrderTokens[pieceToPlace].setPosition(newPosition)
+            placedPieces[currentPlayerOrder] = pieceToPlace
+            numPlacedPieces = numPlacedPieces + 1
+        end
+    end
+end
+
+--                                                                              (if applicable)
+-- structure player placement areas as playerPlacementAreas[playerIdx][areaTypeIdx][trackIdx] = obj
+playerPlacementAreas = {}
+terrainStringPlacementIdx = 1
+powerPlacementIdx = 2
+innovationPlacementIdx = 3
+shippingTrackerPlacementIdx = 4
+terraformTrackerPlacementIdx = 5
+factionPlacementIdx = 6
+terrainStringTag = "terrainString"
+powerTag = "power"
+innovationTag = "innovation"
+shippingTrackerTag = "shippingTracker"
+terraformTrackerTag = "terraformTracker"
+factionTag = "faction"
+
+placementTag = "placement"
+areaTypeTags = {terrainStringTag, powerTag, innovationTag, shippingTrackerTag, terraformTrackerTag, factionTag}
+trackIdxTags = {"idx1", "idx2", "idx3", "idx4", "idx5", "idx6", "idx7", "idx8", "idx9", "idx10", "idx11", "idx12", "idx13"}
+playerColorTags = {"Blue", "Red", "Yellow", "Green"}
+
+function populatePlayerPlacementAreas()
+    -- initialize each of the player placement area arrays to the appropriate structure
+    for playerIdx = 1,4 do
+        -- print("creating player area " .. playerIdx)
+        playerPlacementAreas[playerIdx] = {}
+        for areaTypeIdx, areaTypeTag in ipairs(areaTypeTags) do
+            -- print("creating area type " .. areaTypeTag)
+            playerPlacementAreas[playerIdx][areaTypeIdx] = {}
+        end
+    end
+    local allObjs = getAllObjects()
+    for i, obj in ipairs(allObjs) do
+        if obj.hasTag(placementTag) then
+            for playerIdx, playerColor in ipairs(playerColorTags) do
+                if obj.hasTag(playerColor) then
+                    for areaTypeIdx, areaTypeTag in ipairs(areaTypeTags) do
+                        if obj.hasTag(areaTypeTag) then
+                            local hasTrackIdxTag = false
+                            local trackIdxFound = 0
+                            for trackIdx, trackIdxTag in ipairs(trackIdxTags) do
+                                if obj.hasTag(trackIdxTag) then
+                                    trackIdxFound = trackIdx
+                                    hasTrackIdxTag = true
+                                end
+                            end
+                            if hasTrackIdxTag then
+                                playerPlacementAreas[playerIdx][areaTypeIdx][trackIdxFound] = obj
+                                -- print("creating placement area for player " .. playerIdx .. " for area type " .. areaTypeTag .. " with track idx " .. trackIdxFound)
+                            else
+                                playerPlacementAreas[playerIdx][areaTypeIdx] = obj
+                                -- print("creating placement area for player " .. playerIdx .. " for area type " .. areaTypeTag .. " with no track")
+                            end
+                        end
+                    end
+                end 
+            end
+        end
+    end
+end
+
+playerPowerZones = {}
+function populatePowerZones()
+    for playerIdx = 1,4 do
+        playerPowerZones[playerIdx] = {}
+        for bowlIdx, bowlPlacementArea in ipairs(playerPlacementAreas[playerIdx][powerPlacementIdx]) do
+            local zonePosition = bowlPlacementArea.getPosition()
+            local zoneParameters = {type="ScriptingTrigger", position=zonePosition, scale={2.2,2,2.8}}
+            local obj = spawnObject(zoneParameters)
+            local tags = {"power", playerColorTags[playerIdx]}
+            obj.setTags(tags)
+        end
+    end
+end
+
+terrainStrings = {"Swamp", "Lake", "Forest", "Mountain", "Wasteland", "Desert", "Plains"}
+terrainStringPlacementAreas = {}
+function populateTerrainStringPlacementAreas()
+    local objs = getAllObjects()
+    for _, obj in ipairs(objs) do
+        for i, pcolor in ipairs(playerColorTags) do
+            if obj.hasTag(pcolor) then
+                -- print("player color tag found")
+                if obj.hasTag(terrainStringTag) then
+                    -- print("terrain string tag found")
+                    terrainStringPlacementAreas[i] = obj
+                end
+            end
+        end
+    end
+end
+
+playerPieces = {}
+pieceTag = "piece"
+function populatePlayerPieces()
+    -- initialize player pieces arrays
+    local playerPieceIdx = {1,1,1,1}
+    for i = 1,4 do
+        playerPieces[i] = {}
+    end
+    local objs = getAllObjects()
+    for _, obj in ipairs(objs) do
+        if obj.hasTag(pieceTag) then
+            for playerIdx, pcolor in ipairs(playerColorTags) do
+                if obj.hasTag(pcolor) then
+                    playerPieces[playerIdx][playerPieceIdx[playerIdx]] = obj
+                    playerPieceIdx[playerIdx] = playerPieceIdx[playerIdx] + 1
+                end
+            end
+        end
+    end
+end
+
+function sleep(seconds)
+    local start = os.time()
+    repeat until os.time() > start + seconds
+end
+
+
+
 function onLoad()
+    math.randomseed(tonumber(Time.time * 100))
     Counters()
     map = getObjectFromGUID(MapGUID)
     x = getObjectFromGUID(xGUID)
@@ -200,30 +366,30 @@ function onLoad()
     highFavBag = getObjectFromGUID(HighFavBagGUID)
     highFavBag.randomize()
 
-    print("reached")
+    populateTerrainStringPlacementAreas()
+    populatePlayerPlacementAreas()
+    populatePlayerOrderAreas()
+    populatePlayerPieces()
+    randomizePlayerOrder()
+    populatePowerZones()
 
-    -- pull out the turn order and set the object pointers
+    -- initially move the order pieces to the next order area, then move to the appropriate playerOrderArea randomly
+    
+    -- -- pull out the turn order and set the object pointers
+    -- for i = 1,4 do
+    --     local obj = turnBag.takeObject({
+    --         flip = false,
+    --         position = {TURNPOS[i][1], TURNPOS[i][2], TURNPOS[i][3]}
+    --     })
+    --     for k = 1,4 do
+    --         if obj.getGUID() == playerOrderTokensGUIDs[k] then
+    --             playerOrderTokens[k] = obj
+    --         end
+    --     end
+    -- end
+
     for i = 1,4 do
-        local obj = turnBag.takeObject({
-            flip = false,
-            position = {TURNPOS[i][1], TURNPOS[i][2], TURNPOS[i][3]}
-        })
-        for k = 1,4 do
-            if obj.getGUID() == playerOrderTokensGUIDs[k] then
-                playerOrderTokens[k] = obj
-            end
-        end
-    end
-
-    print("reached")
-
-    for i = 1,4 do
-        -- playerOrderTokens[i] = getObjectFromGUID(playerOrderTokensGUIDs[i])
-        playerMatZones[i] = getObjectFromGUID(playerMatZonesGUIDs[i])
         playerMats[i] = getObjectFromGUID(playerMatsGUIDs[i])
-        for k =1,3 do
-            playerBowls[i][k] = getObjectFromGUID(playerBowlsGUIDs[i][k])
-        end
     end
 
 
@@ -239,7 +405,6 @@ function SetTerrainButtons()
     local lButtonScale = {1.0,0.2,0.5}
     for i = 1,7 do
         local obj = terrainObjects[i]
-        print(obj)
 
         --Sets up reference function
         local buttonTable={}
@@ -254,7 +419,6 @@ function SetTerrainButtons()
         buttonTable.scale=lButtonScale
         buttonTable.color={1,1,1,1}
         buttonTable.font_color=fontColorPick
-        print(buttonTable)
         self.setVar(buttonTable.click_function, 
             function(o,c,a) 
                 selectTerrain(o,c,a,i)
@@ -276,53 +440,58 @@ function SetTerrainButtons()
     end
 end
 
-function emptyPowerBowls(bowls)
-    for _, bowl in ipairs(bowls) do
-        
-        local objectDestroyed = true
-        while(objectDestroyed) 
-        do
-            objectDestroyed = false
-            local objectSet = bowl.getObjects()
-            for _, obj in ipairs(objectSet) do
-                if obj.getName() == "powerToken" then
-                    destroyObject(obj)
-                    objectDestroyed = true
-                    break
-                end
+function emptyPlayerPower(playerIdx)
+    local objs = getAllObjects()
+    local guidsToDestroy = {}
+    local counter = 1
+    for _, obj in ipairs(objs) do
+        if obj.getName() == powerTokenName then
+            if obj.hasTag(playerColorTags[playerIdx]) then
+                print("adding object ".. obj.getGUID())
+                guidsToDestroy[counter] = obj.getGUID()
+                counter = counter + 1
             end
         end
     end
+    if counter > 1 then
+        for _, guid in ipairs(guidsToDestroy) do
+            destroyObject(getObjectFromGUID(guid))
+        end
+    end
+    
 end
 
-function populatePowerBowls(powerCount, bowls)
+function populatePowerBowls(powerCount, bowlPlacements, playerIdx)
     local radius = 1.0
     local radiansPerTokenBowl1 = math.pi * 2 / powerCount[1]
     local radiansPerTokenBowl2 = math.pi * 2 / powerCount[2]
     local angleBowl1 = 0
     local angleBowl2 = 0
     for i = 1,powerCount[1] do
-        local pos = bowls[1].getPosition()
+        local pos = bowlPlacements[1].getPosition()
         pos[1] = pos[1] + math.cos(angleBowl1) * radius * 0.8
         pos[3] = pos[3] + math.sin(angleBowl1) * radius * 1.1
-        powerToken.clone({position=pos})
+        local newPowerToken = powerToken.clone({position=pos})
+        newPowerToken.addTag(playerColorTags[playerIdx])
         angleBowl1 = angleBowl1 + radiansPerTokenBowl1
     end
     for i = 1,powerCount[2] do
-        local pos = bowls[2].getPosition()
+        local pos = bowlPlacements[2].getPosition()
         pos[1] = pos[1] + math.cos(angleBowl2) * radius * 0.8
         pos[3] = pos[3] + math.sin(angleBowl2) * radius * 1.1
-        powerToken.clone({position=pos})
+        local newPowerToken = powerToken.clone({position=pos})
+        newPowerToken.addTag(playerColorTags[playerIdx])
         angleBowl2 = angleBowl2 + radiansPerTokenBowl2
     end
 end
 
 function getPlayerIdx(color)
     for i = 1,4 do
-        if color == playerColors[i] then
+        if color == playerColorTags[i] then
             return i
         end
     end
+    return -1
 end
 
 terrainsPicked = {false, false, false, false, false, false, false}
@@ -331,31 +500,23 @@ function selectTerrain(object, color, alt_click, terrainIdx)
 
     -- identify the components associated with the player that will need updates
     local playerIdx = getPlayerIdx(color)
-    local playerPieces = playerMatZones[playerIdx].getObjects()
-    local playerMat = playerMats[playerIdx]
-    local playerBowls = playerBowls[playerIdx]
-    local powerCount = terrainPowerCounts[terrainIdx]
-    local playerOrderToken = playerOrderTokens[playerIdx]
-    local terrainColor = terrainColors[terrainIdx]
+    local thisPlayerPieces = playerPieces[playerIdx]
+    print("selecting terrain" .. playerIdx)
 
     if terrainsPicked[terrainIdx] then
         print("Terrain Type Taken, pick a different Terrain")
         return
     end
 
-    emptyPowerBowls(playerBowls)
-
+    print("emptying player power")
+    emptyPlayerPower(playerIdx)
+    print("finished empty")
     --update the color of the players pieces within their player zone
-    for _, obj in ipairs(playerPieces) do
-        if obj.getGUID() == tableGUID then
-            print("skipping table")
-        else
-            obj.setColorTint(terrainColor)
-        end
+    for _, obj in ipairs(thisPlayerPieces) do
+        obj.setColorTint(terrainColors[terrainIdx])
     end
 
-    --update the color of the players order token
-    playerOrderToken.setColorTint(terrainColor)
+
     --update the player's selected terrain
     -- if the player previously selected a terrain color, free that terrain color up
     local previousPlayerTerrain = playerSelectedTerrains[playerIdx]
@@ -371,12 +532,27 @@ function selectTerrain(object, color, alt_click, terrainIdx)
     playerSelectedTerrains[playerIdx] = terrainIdx
     
     -- populate the power bowls
-    populatePowerBowls(powerCount, playerBowls)
+    populatePowerBowls(terrainPowerCounts[terrainIdx], playerPlacementAreas[playerIdx][powerPlacementIdx], playerIdx)
 
     -- set the player mat to the appropriate color
-    print("player mat")
-    print(playerMat)
-    playerMat.setState(terrainIdx)
+    playerMats[playerIdx] = playerMats[playerIdx].setState(terrainIdx)
+
+    local uiLabel = {
+        {
+            tag="Text",
+            attributes={
+                text=terrainStrings[terrainIdx],
+                fontSize=45,
+                color="rgba(0,0,0,1)",
+                position = "0, -2, 0",
+                rotation = "0, -90, 0"
+            }
+        }
+    }
+    playerPlacementAreas[playerIdx][terrainStringPlacementIdx].UI.setXmlTable(uiLabel)
+
+    --update the color of the players order token
+    playerOrderTokens[playerIdx].setColorTint(terrainColors[terrainIdx])
 end
 
 function Counters()

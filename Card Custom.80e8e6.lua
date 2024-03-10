@@ -151,7 +151,6 @@ BookSpadesGUID = 'c1f4f3'
 BookPowerGUID = '015a71'
 
 function bookButtonClicked(object, color)
-    print(object.getGUID())
     if object.getGUID() == BookUpgradGUID then
         print("upgrade book")
     elseif object.getGUID() == BookGuildsGUID then
@@ -188,15 +187,6 @@ function click_checkbox(object, color, alt_click, tableIndex, buttonIndex)
     updateSave()
 end
 
---Checks or unchecks the given box
-function click_checkbox2(o, c, a, i, buttonIndex)
-    print(o)
-    print(c)
-    print(a)
-    print(i)
-    print(buttonIndex)
-end
-
 
 --Applies value to given counter display
 function click_counter(tableIndex, buttonIndex, amount)
@@ -227,7 +217,6 @@ function createCheckbox()
         --Sets up reference function
         local buttonTable={}
         local buttonNumber = spawnedButtonCount
-        print(i)
         buttonTable.click_function='cf_'..i
         buttonTable.label = label
         buttonTable.function_owner = self
@@ -238,7 +227,6 @@ function createCheckbox()
         buttonTable.scale=buttonScale
         buttonTable.color=buttonColorInvis
         buttonTable.font_color=buttonFontColor
-        print(buttonTable)
         self.setVar(buttonTable.click_function, 
             function(o,c,a) 
                 click_checkbox(o,c,a,i,buttonNumber)
